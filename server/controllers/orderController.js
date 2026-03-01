@@ -2371,8 +2371,7 @@ export const cancelOrder = async (req, res) => {
 
         // 🔥 Trigger Razorpay Refund
         const refund = await razorpay.payments.refund(
-            order.razorpayPaymentId,
-            { speed: "optimum" }
+            order.razorpayPaymentId
         );
 
         order.status = "Cancelled";
@@ -2458,8 +2457,7 @@ export const updateOrderStatus = async (req, res) => {
 
                 // 🔥 Trigger Razorpay Refund
                 const refund = await razorpay.payments.refund(
-                    order.razorpayPaymentId,
-                    { speed: "optimum" }
+                    order.razorpayPaymentId
                 );
 
                 order.status = "Cancelled";
