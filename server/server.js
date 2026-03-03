@@ -550,12 +550,6 @@ app.post(
 // ==============================
 // NORMAL MIDDLEWARE (AFTER WEBHOOK)
 // ==============================
-// app.use(
-//   cors({
-//     origin: true,
-//     credentials: true,
-//   })
-// );
 
 
 app.use(
