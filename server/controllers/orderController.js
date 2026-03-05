@@ -2179,6 +2179,7 @@ import Product from "../models/Product.js";
 import User from "../models/User.js";
 import razorpay from "../configs/razorpay.js";
 import axios from "axios";
+import Address from "../models/Address.js";
 
 
 // ==============================
@@ -2213,10 +2214,13 @@ const sendTelegramMessage = async (order) => {
         .join("\n");
 
     const address = order.address
-        ? `${order.address.street}, ${order.address.city}, ${order.address.state}`
+        ? `${order.address.firstName || ""} ${order.address.lastName || ""}
+${order.address.street || ""}
+${order.address.city || ""}, ${order.address.state || ""}
+Phone: ${order.address.phone || ""}`
         : "Address not available";
 
-    const phone = order.userId?.phone || "N/A";
+    const phone = order.address?.phone || "N/A";
     const customer = order.userId?.name || "Customer";
 
     let mapLink = "https://maps.google.com";
@@ -2226,21 +2230,20 @@ const sendTelegramMessage = async (order) => {
     }
 
     const message = `
-🛒 New Order Received
+🛒 New Order Received!
 
-🆔 Order ID: ${order._id.toString().slice(-6)}
-💰 Amount: ₹${order.amount}
+Order ID : ${order._id.toString().slice(-6)}
+Order Amount : ₹${order.amount}
+--------------------------------------
 
-👤 Customer: ${customer}
-📞 Phone: ${phone}
-
-🏠 Address:
+Delivery Address :
 ${address}
 
-🧾 Items:
+Order Items :
 ${itemsList}
 
-📍 Map:
+--------------------------------------
+📍Customer Location
 ${mapLink}
 `;
 
@@ -2278,9 +2281,27 @@ export const placeOrderCOD = async (req, res) => {
             });
         }
 
-        const { items, address, coupon, location } = req.body;
+        const { items, address: addressId, coupon, location } = req.body;
 
-        if (!address || !items || items.length === 0) {
+        const addressDoc = await Address.findById(addressId);
+
+        if (!addressDoc) {
+            return res.json({
+                success: false,
+                message: "Address not found"
+            });
+        }
+
+        const addressData = {
+            firstName: addressDoc.firstName || "",
+            lastName: addressDoc.lastName || "",
+            street: addressDoc.street || "",
+            city: addressDoc.city || "",
+            state: addressDoc.state || "",
+            phone: addressDoc.phone || ""
+        };
+
+        if (!addressId || !items || items.length === 0) {
             return res.json({
                 success: false,
                 message: "Invalid order data"
@@ -2338,7 +2359,7 @@ export const placeOrderCOD = async (req, res) => {
             tax: 0,
             discount,
             amount,
-            address,
+            address: addressData,
             paymentType: "COD",
             status: "Order Placed",
             location: location || null
@@ -2347,7 +2368,6 @@ export const placeOrderCOD = async (req, res) => {
         const fullOrder = await Order.findById(order._id)
             .populate("items.product")
             .populate("userId")
-            .populate("address");
 
         await sendTelegramMessage(fullOrder);
 

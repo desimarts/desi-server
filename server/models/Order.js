@@ -116,7 +116,14 @@ const orderSchema = new mongoose.Schema({
     discount: { type: Number, default: 0 },
 
     amount: { type: Number, required: true },
-    address: { type: String, required: true, ref: 'address' },
+    address: {
+        firstName: String,
+        lastName: String,
+        street: String,
+        city: String,
+        state: String,
+        phone: String
+    },
 
     status: { type: String, default: 'Order Placed' },
 
